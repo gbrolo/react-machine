@@ -13,7 +13,18 @@ class Main extends Component {
       newQuadrupletF1: '',
       newQuadrupletF2: '',
       newQuadrupletF3: '',
-      newQuadrupletF4: ''
+      newQuadrupletF4: '',
+
+      alphabet: [],
+      alphabetInput: '',
+      alphabetShow: 'Input alphabet.',
+
+      enableAlphabetInput: false,
+      enableQuads: false,
+      enableInput: false,
+
+      machineInput: '',
+      inputTape: []
     }
   }
 
@@ -23,7 +34,7 @@ class Main extends Component {
       Q[i] = 'q'+i;
     }
 
-    this.setState({ Q })
+    this.setState({ Q });
   };
 
   onShowStates = () => {
@@ -35,41 +46,74 @@ class Main extends Component {
 
     toShow = toShow.substring(0, toShow.length-2);
     this.setState({ Qshow: toShow });
+    this.setState({ enableAlphabetInput: true });
   };
 
   onChangeQuadrupletf1 = () => {
-    var re = /q[0-9]*(.)(.)q[0-9]*/;
+    var re = /q[0-9]*,(.),(.),q[0-9]*/;
     if (re.test(String(this.state.newQuadrupletF1).toLowerCase())) {
-      this.onAddQuadruplet(this.state.newQuadrupletF1);
+      // before calling func we have to check if quadruplets' symbols exist, and
+      // the same with states
+
+      // Only symbols in QF1 are in splits[1] and splits[2]
+      var splits = this.state.newQuadrupletF1.split(',');
+
+      if (this.state.alphabet.includes(splits[1]) && this.state.alphabet.includes(splits[2])
+          && this.state.Q.includes(splits[0]) && this.state.Q.includes(splits[3])) {
+        this.onAddQuadruplet(this.state.newQuadrupletF1);
+      } else {
+        alert('using invalid state and/or symbol');
+      }
     } else {
-      alert('wrong');
+      alert('malformed quadruplet');
     }
   };
 
   onChangeQuadrupletf2 = () => {
-    var re = /q[0-9]*(.)(R)q[0-9]*/;
-    if (re.test(String(this.state.newQuadrupletF2).toLowerCase())) {
-      this.onAddQuadruplet(this.state.newQuadrupletF2)
+    var re = /q[0-9]*,.,R,q[0-9]*/;
+    if (re.test(String(this.state.newQuadrupletF2))) {
+      var splits = this.state.newQuadrupletF2.split(',');
+
+      if (this.state.alphabet.includes(splits[1])
+          && this.state.Q.includes(splits[0]) && this.state.Q.includes(splits[3])) {
+        this.onAddQuadruplet(this.state.newQuadrupletF2);
+      } else {
+        alert('using invalid state and/or symbol');
+      }
     } else {
-      alert('wrong');
+      alert('malformed quadruplet');
     }
   };
 
   onChangeQuadrupletf3 = () => {
-    var re = /q[0-9]*(.)(L)q[0-9]*/;
-    if (re.test(String(this.state.newQuadrupletF3).toLowerCase())) {
-      this.onAddQuadruplet(this.state.newQuadrupletF3)
+    var re = /q[0-9]*,.,L,q[0-9]*/;
+    if (re.test(String(this.state.newQuadrupletF3))) {
+      var splits = this.state.newQuadrupletF3.split(',');
+
+      if (this.state.alphabet.includes(splits[1])
+          && this.state.Q.includes(splits[0]) && this.state.Q.includes(splits[3])) {
+        this.onAddQuadruplet(this.state.newQuadrupletF3);
+      } else {
+        alert('using invalid state and/or symbol');
+      }
     } else {
-      alert('wrong');
+      alert('malformed quadruplet');
     }
   };
 
   onChangeQuadrupletf4 = () => {
-    var re = /q[0-9]*(.)(q[0-9]*)q[0-9]*/;
+    var re = /q[0-9]*,(.),(q[0-9]*),q[0-9]*/;
     if (re.test(String(this.state.newQuadrupletF4).toLowerCase())) {
-      this.onAddQuadruplet(this.state.newQuadrupletF4)
+      var splits = this.state.newQuadrupletF4.split(',');
+
+      if (this.state.alphabet.includes(splits[1]) && this.state.Q.includes(splits[2])
+          && this.state.Q.includes(splits[0]) && this.state.Q.includes(splits[3])) {
+        this.onAddQuadruplet(this.state.newQuadrupletF4);
+      } else {
+        alert('using invalid state and/or symbol');
+      }
     } else {
-      alert('wrong');
+      alert('malformed quadruplet');
     }
   };
 
@@ -77,10 +121,69 @@ class Main extends Component {
     var quadruplets = this.state.quadruplets;
     if (!quadruplets.includes(newQuadruplet)) {
       quadruplets.push(newQuadruplet);
+    } else {
+      alert('already added')
     }
 
     this.setState({ quadruplets });
+    this.setState({ enableInput: true });
   };
+
+  onAddAlphabet = () => {
+    var alphabetRaw = this.state.alphabetInput.replace(' ', '').split(',');
+    var alphabet = alphabetRaw.filter(symbol => symbol.length === 1);
+    this.setState({ alphabet });
+
+    var alphabetShow = '';
+
+    for (var i = 0; i < alphabet.length; i++) {
+      alphabetShow = alphabetShow + alphabet[i] + ', ';
+    }
+
+    alphabetShow = alphabetShow.substring(0, alphabetShow.length-2);
+    this.setState({ alphabetShow });
+
+    this.setState({ enableQuads: true });
+  };
+
+  removeQuadruplet = (quadruplet) => {
+    var originalQuadruplets = this.state.quadruplets;
+    var quadruplets = originalQuadruplets.filter(quad => quad !== quadruplet);
+    this.setState({ quadruplets });
+    console.log('new quadruplets', this.state.quadruplets);
+  };
+
+  onProcessInput = () => {
+    // check if symbols are in alphabet
+    var flag = true;
+    var splits = this.state.machineInput.split('');
+    for (var i = 0; i < splits.length; i++) {
+      if (!this.state.alphabet.includes(splits[i])) {
+        alert('invalid symbol inside input');
+        flag = false;
+        break;
+      }
+    }
+
+    if (flag) {
+      // continue processing
+      alert('input is correct');
+      console.log('splits', splits);
+      var inputTape = splits.map((symbol, index) => {
+        var head = false;
+        if (index === 0) {
+          head = true;
+        }
+        var x = {index: index, symbol: symbol, head: head};
+        return x;
+      });
+
+      console.log('inputTape', inputTape);
+      this.setState({ inputTape });
+      console.log('input tape in state', this.state.inputTape);
+    }
+
+  }
 
   render() {
     return (
@@ -89,6 +192,43 @@ class Main extends Component {
           <h1 className="main-title">React Machine</h1>
           <p className="main-subtitle">A Turing Machine Simulator made with React and JS.</p>
         </header>
+
+        <Container className="fill-data-fields">
+          <Row>
+            <Col>
+              <Form inline>
+                <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+                  <Label for="machine-input" className="mr-sm-2">Input</Label>
+                  <Input type="text" name="machine-input" id="machine-input" placeholder="Enter input"
+                    onChange={(event) => this.setState({machineInput: event.target.value})}
+                    disabled={!this.state.enableInput}/>
+                </FormGroup>
+                <Button color="success" disabled={!this.state.enableInput} onClick={ () => this.onProcessInput() }>Simulate</Button>
+              </Form>
+            </Col>
+            <Col>
+              {
+                this.state.inputTape.map((element) => {
+                  if (element.head === true) {
+                    return(
+                      <div className="main-input-tape-head" key={element.index}>
+                        { element.symbol }
+                      </div>
+                    )
+                  } else {
+                    return(
+                      <div className="main-input-tape" key={element.index}>
+                        { element.symbol }
+                      </div>
+                    )
+                  }
+
+                })
+              }
+            </Col>
+          </Row>
+        </Container>
+
         <Container className="fill-data-fields">
           <Row>
 
@@ -108,9 +248,11 @@ class Main extends Component {
                 <Form inline>
                   <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
                     <Label for="alphabet-input" className="mr-sm-2">Alphabet</Label>
-                    <Input type="text" name="alphabet-input" id="alphabet-input" placeholder="Alphabet symbols" />
+                    <Input type="text" name="alphabet-input" id="alphabet-input" placeholder="Alphabet symbols"
+                      onChange={ event => this.setState({ alphabetInput: event.target.value }) }
+                      disabled={!this.state.enableAlphabetInput}/>
                   </FormGroup>
-                  <Button>Set</Button>
+                  <Button disabled={!this.state.enableAlphabetInput} onClick={ () => this.onAddAlphabet() }>Set</Button>
                 </Form>
               </div>
 
@@ -121,34 +263,38 @@ class Main extends Component {
                 <Form inline>
                   <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
                     <Label for="quad-f1" className="mr-sm-2"><i>Form qiSjSkql</i></Label>
-                    <Input type="text" name="quad-f1" id="quad-f1" placeholder="New quadruple"
-                      onChange={(event) => this.setState({ newQuadrupletF1: event.target.value })}/>
+                    <Input type="text" name="quad-f1" id="quad-f1" placeholder="New quadruplet"
+                      onChange={(event) => this.setState({ newQuadrupletF1: event.target.value })}
+                      disabled={!this.state.enableQuads}/>
                   </FormGroup>
-                  <Button onClick={() => this.onChangeQuadrupletf1()}>Add</Button>
+                  <Button disabled={!this.state.enableQuads} onClick={() => this.onChangeQuadrupletf1()}>Add</Button>
                 </Form>
                 <Form inline>
                   <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
                     <Label for="quad-f2" className="mr-sm-2"><i>Form qiSjRql</i></Label>
-                    <Input type="text" name="quad-f2" id="quad-f2" placeholder="New quadruple"
-                      onChange={(event) => this.setState({ newQuadrupletF2: event.target.value })}/>
+                    <Input type="text" name="quad-f2" id="quad-f2" placeholder="New quadruplet"
+                      onChange={(event) => this.setState({ newQuadrupletF2: event.target.value })}
+                      disabled={!this.state.enableQuads}/>
                   </FormGroup>
-                  <Button onClick={() => this.onChangeQuadrupletf2()}>Add</Button>
+                  <Button disabled={!this.state.enableQuads} onClick={() => this.onChangeQuadrupletf2()}>Add</Button>
                 </Form>
                 <Form inline>
                   <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
                     <Label for="quad-f3" className="mr-sm-2"><i>Form qiSjLql</i></Label>
-                    <Input type="text" name="quad-f3" id="quad-f3" placeholder="New quadruple"
-                      onChange={(event) => this.setState({ newQuadrupletF3: event.target.value })}/>
+                    <Input type="text" name="quad-f3" id="quad-f3" placeholder="New quadruplet"
+                      onChange={(event) => this.setState({ newQuadrupletF3: event.target.value })}
+                      disabled={!this.state.enableQuads}/>
                   </FormGroup>
-                  <Button onClick={() => this.onChangeQuadrupletf3()}>Add</Button>
+                  <Button disabled={!this.state.enableQuads} onClick={() => this.onChangeQuadrupletf3()}>Add</Button>
                 </Form>
                 <Form inline>
                   <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
                     <Label for="quad-f4" className="mr-sm-2"><i>Form qiSjqkql</i></Label>
-                    <Input type="text" name="quad-f4" id="quad-f4" placeholder="New quadruple"
-                      onChange={(event) => this.setState({ newQuadrupletF4: event.target.value })}/>
+                    <Input type="text" name="quad-f4" id="quad-f4" placeholder="New quadruplet"
+                      onChange={(event) => this.setState({ newQuadrupletF4: event.target.value })}
+                      disabled={!this.state.enableQuads}/>
                   </FormGroup>
-                  <Button onClick={() => this.onChangeQuadrupletf4()}>Add</Button>
+                  <Button disabled={!this.state.enableQuads} onClick={() => this.onChangeQuadrupletf4()}>Add</Button>
                 </Form>
               </div>
             </Col>
@@ -159,8 +305,19 @@ class Main extends Component {
                   States
                 </div>
                 <div>
-                  <Alert color="primary">
+                  <Alert color="secondary" className="main-show">
                     { this.state.Qshow }
+                  </Alert>
+                </div>
+              </div>
+
+              <div className="main-subcontainer">
+                <div className="main-subcontainer-title">
+                  Alphabet
+                </div>
+                <div>
+                  <Alert color="secondary" className="main-show">
+                    { this.state.alphabetShow }
                   </Alert>
                 </div>
               </div>
@@ -173,9 +330,9 @@ class Main extends Component {
                   {
                     this.state.quadruplets.map((quadruplet, index) => {
                       return(
-                        <div>
+                        <Button color="success" onClick={ () => this.removeQuadruplet(quadruplet) } key={index} id="#quad-el">
                           { quadruplet }
-                        </div>
+                        </Button>
                       )
                     })
                   }

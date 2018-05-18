@@ -41,10 +41,29 @@ Label {
   margin-bottom: 20px;
 }
 
+.main-show {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
 .fill-data-fields {
   margin-top: 20px;
   margin-bottom: 20px;
   border-radius: 5px;
   background-color: #f3f3f3;
   padding: 20px;
+}
+
+.main-input-tape-head {
+  background-color: #181818;
+  color: #fff;
+  padding: 10px;
+  float: left;
+  border-radius: 5px;
+}
+
+.main-input-tape {
+  background-color: #fefefe;
+  padding: 10px;
+  float: left;
 }
