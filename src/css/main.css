@@ -1,0 +1,50 @@
+Form {
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+Label {
+  width: 150px;
+}
+
+.main-container {
+  text-align: center;
+}
+
+.main-header {
+  background-color: #f0f0f0;
+  color: #181818;
+  padding: 20px;
+}
+
+.main-title {
+  font-size: 1.5em;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.main-subtitle {
+  margin-top: 5px;
+  font-size: 0.8em;
+}
+
+.main-subcontainer {
+  margin: 20px;
+  background-color: #fefefe;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.main-subcontainer-title {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.fill-data-fields {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  background-color: #f3f3f3;
+  padding: 20px;
+}
