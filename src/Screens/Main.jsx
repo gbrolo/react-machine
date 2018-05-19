@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Form, FormGroup, Label, Input, Container, Row, Col, Alert } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Container, Row, Col, Alert, Progress } from 'reactstrap';
 import '../css/main.css';
 
 class Main extends Component {
@@ -10,6 +10,7 @@ class Main extends Component {
       Qshow: 'Input number of states.',
 
       quadruplets: [],
+      quadsFirstTwo: [],
       newQuadrupletF1: '',
       newQuadrupletF2: '',
       newQuadrupletF3: '',
@@ -24,7 +25,12 @@ class Main extends Component {
       enableInput: false,
 
       machineInput: '',
-      inputTape: []
+      inputTape: [{index:0, symbol: 'Waiting for input', head: true}],
+
+      acceptState: '',
+      currentState: 'q0',
+      currentTapeSymbol: '',
+      accept: false
     }
   }
 
@@ -34,7 +40,10 @@ class Main extends Component {
       Q[i] = 'q'+i;
     }
 
+    var acceptState = 'q' + (numStates-1);
+
     this.setState({ Q });
+    this.setState({ acceptState });
   };
 
   onShowStates = () => {
@@ -119,13 +128,25 @@ class Main extends Component {
 
   onAddQuadruplet = (newQuadruplet) => {
     var quadruplets = this.state.quadruplets;
-    if (!quadruplets.includes(newQuadruplet)) {
-      quadruplets.push(newQuadruplet);
+    var quadsFirstTwo = this.state.quadsFirstTwo;
+
+    var quadSplits = newQuadruplet.split(',');
+    var firstTwo = quadSplits[0] + quadSplits[1];
+
+    if (!quadsFirstTwo.includes(firstTwo)) {
+      quadsFirstTwo.push(firstTwo);
+
+      if (!quadruplets.includes(newQuadruplet)) {
+        quadruplets.push(newQuadruplet);
+      } else {
+        alert('already added')
+      }
     } else {
-      alert('already added')
+      alert('another quadruplet already has first two items')
     }
 
     this.setState({ quadruplets });
+    this.setState({ quadSplits });
     this.setState({ enableInput: true });
   };
 
@@ -167,7 +188,6 @@ class Main extends Component {
 
     if (flag) {
       // continue processing
-      alert('input is correct');
       console.log('splits', splits);
       var inputTape = splits.map((symbol, index) => {
         var head = false;
@@ -178,12 +198,142 @@ class Main extends Component {
         return x;
       });
 
+      var last = { index: splits.length, symbol: '#', head: false };
+      inputTape.push(last);
+
+      var cursorTape = [];
+      cursorTape.push('H');
+      for (var i = 1; i < inputTape.length; i++) {
+        cursorTape.push('');
+      }
+
+      this.setState({ cursorTape });
+
       console.log('inputTape', inputTape);
       this.setState({ inputTape });
       console.log('input tape in state', this.state.inputTape);
+      this.setState({ accept: false });
+
+      //this.simulate();
+      //document.getElementById('btn-sim').click();
+    }
+  }
+
+  simulate = () => {
+    var inputTape = this.state.inputTape;
+    console.log('inputTape[0].symbol', inputTape[0].symbol);
+    var currentTapeSymbol = inputTape[0].symbol;
+    this.setState({ currentTapeSymbol: inputTape[0].symbol });
+
+    var end = false;
+
+    var currentState = this.state.currentState;
+    console.log('currentState', currentState);
+
+    var symbol = inputTape[0].symbol;
+    console.log('symbol', symbol);
+
+    while (!end) {
+      // search for Quadruplets
+      var quadruplet = '';
+      var action = '';
+
+      for (var i = 0; i < this.state.quadruplets.length; i++) {
+        var splits = this.state.quadruplets[i].split(',');
+        if (splits[0] === currentState &&
+            splits[1] === symbol) {
+          quadruplet = this.state.quadruplets[i];
+          currentState = splits[3];
+          this.setState({ currentState })
+          action = splits[2];
+          break;
+        }
+      }
+
+      console.log('quadruplet', quadruplet);
+      console.log('action', action);
+
+      // handle action
+      // R
+      if (action === 'R') {
+        // move tape right
+        var newInputTape = [];
+        var lastHeadIndex = 0;
+        for (var i = 0; i < inputTape.length; i++) {
+          if (inputTape[i].head === true) {
+            var x = {index: inputTape[i].index,
+                      symbol: inputTape[i].symbol, head: false};
+            lastHeadIndex = inputTape[i].index
+            newInputTape.push(x);
+          } else {
+            newInputTape.push(inputTape[i]);
+          }
+        }
+
+        console.log('lastHeadIndex', lastHeadIndex);
+        console.log('newInputTape', newInputTape);
+
+        var newInputTapeFix = [];
+        for (var i = 0; i < newInputTape.length; i++) {
+          if (newInputTape[i].index === lastHeadIndex + 1) {
+            var x = {index: newInputTape[i].index,
+                      symbol: newInputTape[i].symbol, head: true};
+            this.setState({ currentTapeSymbol: newInputTape[i].symbol })
+            currentTapeSymbol = newInputTape[i].symbol;
+            symbol = newInputTape[i].symbol;
+            console.log('currentTapeSymbol', this.state.currentTapeSymbol);
+            console.log('currentTapeSymbol, not state', currentTapeSymbol);
+            newInputTapeFix.push(x);
+          } else {
+            newInputTapeFix.push(newInputTape[i]);
+          }
+        }
+
+        inputTape = newInputTapeFix;
+
+        console.log('newInputTapeFix', newInputTapeFix);
+        this.setState({ inputTape: newInputTapeFix });
+
+        this.updateTape(inputTape);
+
+      }
+
+      if (symbol === "#") {
+        end = true;
+        break;
+      }
+
     }
 
+    console.log('currentState', currentState);
+    var acceptState = this.state.acceptState;
+
+    if (currentState === acceptState) {
+      console.log('accepted');
+      currentState = 'q0';
+      this.setState({ currentState: currentState, accept: true });
+    } else {
+      this.setState({ accept: false });
+      console.log('rejected');
+      currentState = 'q0';
+      this.setState({ currentState: currentState, accept: false });
+    }
+
+  };
+
+  updateTape = (inputTape) => {
+    this.setState({ inputTape });
+    this.sleep(0);
+  };
+
+  sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
   }
+}
 
   render() {
     return (
@@ -203,10 +353,14 @@ class Main extends Component {
                     onChange={(event) => this.setState({machineInput: event.target.value})}
                     disabled={!this.state.enableInput}/>
                 </FormGroup>
-                <Button color="success" disabled={!this.state.enableInput} onClick={ () => this.onProcessInput() }>Simulate</Button>
+                <Button color="success" disabled={!this.state.enableInput} onClick={ () => this.onProcessInput() }>Load Tape</Button>
+                <Button id="btn-sim" color="success" disabled={!this.state.enableInput} onClick={ () => this.simulate() }>Simulate</Button>
               </Form>
             </Col>
-            <Col>
+          </Row>
+          <Row>
+            <Col xs="3"></Col>
+            <Col className="main-input-tape-container" xs="auto">
               {
                 this.state.inputTape.map((element) => {
                   if (element.head === true) {
@@ -226,6 +380,17 @@ class Main extends Component {
                 })
               }
             </Col>
+            <Col xs="3"></Col>
+          </Row>
+          <Row>
+            <Col xs="3"></Col>
+            <Col className="main-input-tape-container" xs="auto">
+              {
+                (this.state.accept === true)? (<Alert color="success">Input accepted!</Alert>) :
+                  (<Alert color="danger">Input rejected.</Alert>)
+              }
+            </Col>
+            <Col xs="3"></Col>
           </Row>
         </Container>
 
