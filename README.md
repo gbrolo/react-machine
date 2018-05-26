@@ -6,7 +6,7 @@ machine with a set of quadruplets, states, alphabet and an input.
 ## Demonstration video
 
 ```
-https://youtu.be/DH6sLUd0Biw
+[https://youtu.be/DH6sLUd0Biw](https://youtu.be/DH6sLUd0Biw)
 ```
 
 ## Available Scripts
