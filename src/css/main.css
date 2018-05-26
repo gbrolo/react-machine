@@ -74,3 +74,16 @@ Label {
   margin-right: auto;
   text-align: center;
 }
+
+.main-results-div {
+  display: none;
+}
+
+.main-descr-div {
+  padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  background-color: #fff;
+  color: #181818;
+  border-radius: 5px;
+}

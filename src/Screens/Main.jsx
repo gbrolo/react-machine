@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Form, FormGroup, Label, Input, Container, Row, Col, Alert, Progress } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Container, Row, Col, Alert, Progress, Badge } from 'reactstrap';
 import '../css/main.css';
 
 class Main extends Component {
@@ -30,7 +30,9 @@ class Main extends Component {
       acceptState: '',
       currentState: 'q0',
       currentTapeSymbol: '',
-      accept: false
+      accept: false,
+
+      descriptions: []
     }
   }
 
@@ -153,6 +155,7 @@ class Main extends Component {
   onAddAlphabet = () => {
     var alphabetRaw = this.state.alphabetInput.replace(' ', '').split(',');
     var alphabet = alphabetRaw.filter(symbol => symbol.length === 1);
+    alphabet.push("#");
     this.setState({ alphabet });
 
     var alphabetShow = '';
@@ -220,10 +223,17 @@ class Main extends Component {
   }
 
   simulate = () => {
+    var x = document.getElementById('results');
+    x.style.display = "block";
+
     var inputTape = this.state.inputTape;
     console.log('inputTape[0].symbol', inputTape[0].symbol);
     var currentTapeSymbol = inputTape[0].symbol;
     this.setState({ currentTapeSymbol: inputTape[0].symbol });
+
+    var emptyDesc = this.state.descriptions;
+    emptyDesc.splice(0,emptyDesc.length);
+    this.setState({ descriptions: emptyDesc });
 
     var end = false;
 
@@ -257,6 +267,15 @@ class Main extends Component {
       // R
       if (action === 'R') {
         // move tape right
+        console.log('entering with action', action);
+
+        // write description
+        var qsplits = quadruplet.split(',');
+        var descr = qsplits[0] + ", " + symbol + ", " + action + ", " + qsplits[3];
+        var descriptions = this.state.descriptions;
+        descriptions.push(descr);
+        this.setState({ descriptions });
+
         var newInputTape = [];
         var lastHeadIndex = 0;
         for (var i = 0; i < inputTape.length; i++) {
@@ -296,6 +315,94 @@ class Main extends Component {
 
         this.updateTape(inputTape);
 
+      } else if (this.state.alphabet.includes(action)) {
+        // write description
+        var qsplits = quadruplet.split(',');
+        var descr = qsplits[0] + ", " + symbol + ", " + action + ", " + qsplits[3];
+        var descriptions = this.state.descriptions;
+        descriptions.push(descr);
+        this.setState({ descriptions });
+
+        // make a replacement
+        console.log('entering with action', action);
+        var newInputTape = [];
+        for (var i = 0; i < inputTape.length; i++) {
+          if (inputTape[i].head === true) {
+            var x = {index: inputTape[i].index,
+                      symbol: action, head: true};
+            this.setState({ currentTapeSymbol: action })
+            currentTapeSymbol = action;
+            symbol = action;
+            newInputTape.push(x);
+          } else {
+            newInputTape.push(inputTape[i]);
+          }
+        }
+
+        inputTape = newInputTape;
+        console.log('newInputTape in change', inputTape);
+        this.setState({ inputTape: inputTape });
+        this.updateTape(inputTape);
+      } else if(action === 'L') {
+        // move tape left
+
+        // write description
+        var qsplits = quadruplet.split(',');
+        var descr = qsplits[0] + ", " + symbol + ", " + action + ", " + qsplits[3];
+        var descriptions = this.state.descriptions;
+        descriptions.push(descr);
+        this.setState({ descriptions });
+
+        console.log('entering with action', action);
+        var newInputTape = [];
+        var lastHeadIndex = 0;
+        for (var i = 0; i < inputTape.length; i++) {
+          if (inputTape[i].head === true) {
+            var x = {index: inputTape[i].index,
+                      symbol: inputTape[i].symbol, head: false};
+            lastHeadIndex = inputTape[i].index
+            newInputTape.push(x);
+          } else {
+            newInputTape.push(inputTape[i]);
+          }
+        }
+
+        console.log('lastHeadIndex', lastHeadIndex);
+        console.log('newInputTape', newInputTape);
+
+        var newInputTapeFix = [];
+        for (var i = 0; i < newInputTape.length; i++) {
+          if (newInputTape[i].index === lastHeadIndex - 1) {
+            var x = {index: newInputTape[i].index,
+                      symbol: newInputTape[i].symbol, head: true};
+            this.setState({ currentTapeSymbol: newInputTape[i].symbol })
+            currentTapeSymbol = newInputTape[i].symbol;
+            symbol = newInputTape[i].symbol;
+            console.log('currentTapeSymbol', this.state.currentTapeSymbol);
+            console.log('currentTapeSymbol, not state', currentTapeSymbol);
+            newInputTapeFix.push(x);
+          } else {
+            newInputTapeFix.push(newInputTape[i]);
+          }
+        }
+
+        inputTape = newInputTapeFix;
+
+        console.log('newInputTapeFix', newInputTapeFix);
+        this.setState({ inputTape: newInputTapeFix });
+
+        this.updateTape(inputTape);
+      } else if (this.state.Q.includes(action)) {
+        // write description
+        var qsplits = quadruplet.split(',');
+        var descr = qsplits[0] + ", " + symbol + ", " + action + ", " + qsplits[3];
+        var descriptions = this.state.descriptions;
+        descriptions.push(descr);
+        this.setState({ descriptions });
+
+        // move to new state
+        currentState = action;
+        this.setState({ currentState });
       }
 
       if (symbol === "#") {
@@ -382,13 +489,26 @@ class Main extends Component {
             </Col>
             <Col xs="3"></Col>
           </Row>
-          <Row>
+          <Row className="main-results-div" id="results">
             <Col xs="3"></Col>
-            <Col className="main-input-tape-container" xs="auto">
+            <Col className="main-input-tape-container" xs="3">
               {
                 (this.state.accept === true)? (<Alert color="success">Input accepted!</Alert>) :
                   (<Alert color="danger">Input rejected.</Alert>)
               }
+            </Col>
+            <Col className="main-input-tape-container" xs="3">
+            <div>
+              {
+                this.state.descriptions.map((descr, index) => {
+                  return(
+                    <div className="main-descr-div" key={index}>
+                      { descr }
+                    </div>
+                  )
+                })
+              }
+            </div>
             </Col>
             <Col xs="3"></Col>
           </Row>
