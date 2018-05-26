@@ -4,10 +4,8 @@ A Turing Machine simulator made with React and Javascript. It follows creation b
 machine with a set of quadruplets, states, alphabet and an input.
 
 ## Demonstration video
+###[https://youtu.be/DH6sLUd0Biw](https://youtu.be/DH6sLUd0Biw)
 
-```
-[https://youtu.be/DH6sLUd0Biw](https://youtu.be/DH6sLUd0Biw)
-```
 
 ## Available Scripts
 
